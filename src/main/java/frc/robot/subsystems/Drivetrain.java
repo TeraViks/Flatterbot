@@ -61,6 +61,14 @@ public class Drivetrain extends SubsystemBase {
       );
   }
 
+  private final double revToInch(double revolutions){
+    return Constants.WHEEL_DIAMETER * Math.PI * revolutions / Constants.MOTOR_WHEEL_GEAR_RATIO;
+  }
+
+  private final double inchToRev(double inches) {
+    return Constants.WHEEL_DIAMETER * Math.PI / inches * Constants.MOTOR_WHEEL_GEAR_RATIO;
+  }
+
   public final void resetEncoders() {
     m_leftFrontEncoder.setPosition(0.0);
     m_leftBackEncoder.setPosition(0.0);
@@ -93,11 +101,11 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public final double getLeftDistanceInch() {
-    return Constants.WHEEL_DIAMETER * Math.PI * getLeftEncoderPos() / Constants.MOTOR_WHEEL_GEAR_RATIO;
+    return revToInch(getLeftEncoderPos());
   }
 
   public final double getRightDistanceInch() {
-    return Constants.WHEEL_DIAMETER * Math.PI * getRightEncoderPos() / Constants.MOTOR_WHEEL_GEAR_RATIO;
+    return revToInch(getRightEncoderPos());
   }
 
   public final double getAverageDistanceInch() {
@@ -105,8 +113,9 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public final void driveDistance(double inches) {
-    m_leftLeader.getPIDController().setReference(8, ControlType.kPosition);
-    m_rightLeader.getPIDController().setReference(8, ControlType.kPosition);
+    double distance = inchToRev(inches);
+    m_leftLeader.getPIDController().setReference(distance, ControlType.kPosition);
+    m_rightLeader.getPIDController().setReference(distance, ControlType.kPosition);
   }
   
 }
