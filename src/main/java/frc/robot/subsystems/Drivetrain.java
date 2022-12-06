@@ -8,51 +8,72 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkMaxRelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.CANSparkMax.ControlType;
 import java.lang.Math;
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import com.revrobotics.CANSparkMax.IdleMode;
 
 public class Drivetrain extends SubsystemBase {
-  // Creates motor objects
-  CANSparkMax rightFrontMotor = new CANSparkMax(Constants.RIGHT_FRONT_CAN_ID, MotorType.kBrushless);
-  CANSparkMax leftBackMotor = new CANSparkMax(Constants.LEFT_BACK_CAN_ID, MotorType.kBrushless);
+  // Creates Motor Objects
+  CANSparkMax m_leftLeader = new CANSparkMax(Constants.LEFT_FRONT_CAN_ID, MotorType.kBrushless);
+  CANSparkMax m_leftBackMotor = new CANSparkMax(Constants.LEFT_BACK_CAN_ID, MotorType.kBrushless);
+  CANSparkMax m_rightLeader = new CANSparkMax(Constants.RIGHT_FRONT_CAN_ID, MotorType.kBrushless);
+  CANSparkMax m_rightBackMotor = new CANSparkMax(Constants.RIGHT_BACK_CAN_ID, MotorType.kBrushless);
 
-  CANSparkMax leftFrontMotor = new CANSparkMax(Constants.LEFT_FRONT_CAN_ID, MotorType.kBrushless);
-  CANSparkMax rightBackMotor = new CANSparkMax(Constants.RIGHT_BACK_CAN_ID, MotorType.kBrushless);
+  // Creates Encoder Objects
+  RelativeEncoder m_leftFrontEncoder = m_leftLeader.getEncoder();
+  RelativeEncoder m_leftBackEncoder = m_leftBackMotor.getEncoder();
+  RelativeEncoder m_rightFrontEncoder = m_rightLeader.getEncoder();
+  RelativeEncoder m_rightBackEncoder = m_rightBackMotor.getEncoder();
+
+  private final MotorControllerGroup m_rightDrive = new MotorControllerGroup(m_rightLeader, m_rightBackMotor);
+  private final MotorControllerGroup m_leftDrive = new MotorControllerGroup(m_leftLeader, m_leftBackMotor);
   
+  
+  
+  private final DifferentialDrive diffDrive = new DifferentialDrive(m_leftDrive, m_rightDrive);
+
   /** Creates a new Drivetrain. */
   public Drivetrain() {
+    m_rightLeader.setInverted(true);
+    m_rightBackMotor.setInverted(true);
+
+    m_leftLeader.setIdleMode(IdleMode.kCoast);
+    m_leftBackMotor.setIdleMode(IdleMode.kCoast);
+    m_rightLeader.setIdleMode(IdleMode.kCoast);
+    m_rightBackMotor.setIdleMode(IdleMode.kCoast);
     resetEncoders();
-    rightFrontMotor.setInverted(true);
-    rightBackMotor.setInverted(true);
     
+    m_leftBackMotor.follow(m_leftLeader, false);
+    m_rightBackMotor.follow(m_rightLeader, false);
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    leftFrontMotor.set(RobotContainer.getJoyX());
-    leftBackMotor.set(RobotContainer.getJoyX());
-
-    rightFrontMotor.set(RobotContainer.getJoyX());
-    rightBackMotor.set(RobotContainer.getJoyX());
-
+    diffDrive.arcadeDrive(
+      RobotContainer.getJoyX(),
+      RobotContainer.getJoyY()*Constants.SPEED_FACTOR
+      );
   }
 
   public final void resetEncoders() {
-    leftFrontMotor.getEncoder().setPosition(0.0);
-    leftBackMotor.getEncoder().setPosition(0.0);
-    rightFrontMotor.getEncoder().setPosition(0.0);
-    rightBackMotor.getEncoder().setPosition(0.0);
+    m_leftFrontEncoder.setPosition(0.0);
+    m_leftBackEncoder.setPosition(0.0);
+    m_rightFrontEncoder.setPosition(0.0);
+    m_rightBackEncoder.setPosition(0.0);
   }
 
   public final double getLeftEncoderPos() {
-    return (leftFrontMotor.getEncoder().getPosition() + leftBackMotor.getEncoder().getPosition()) / 2;
+    return (m_leftFrontEncoder.getPosition() + m_leftBackEncoder.getPosition()) / 2;
   }
   
   public final double getRightEncoderPos() {
-    return (rightFrontMotor.getEncoder().getPosition() + rightBackMotor.getEncoder().getPosition()) / 2;
+    return (m_rightFrontEncoder.getPosition() + m_rightBackEncoder.getPosition()) / 2;
   }
 
   public final double getAverageEncoderPos() {
@@ -60,11 +81,11 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public final double getLeftEncoderVel() {
-    return (leftFrontMotor.getEncoder().getVelocity() + leftBackMotor.getEncoder().getVelocity()) / 2;
+    return (m_leftFrontEncoder.getVelocity() + m_leftBackEncoder.getVelocity()) / 2;
   }
 
   public final double getRightEncoderVel() {
-    return (rightFrontMotor.getEncoder().getVelocity() + rightBackMotor.getEncoder().getVelocity()) / 2;
+    return (m_rightFrontEncoder.getVelocity() + m_rightBackEncoder.getVelocity()) / 2;
   }
 
   public final double getAverageEncoderVel() {
@@ -72,15 +93,20 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public final double getLeftDistanceInch() {
-    return Constants.WHEEL_DIAMETER * Math.PI * getLeftEncoderPos() / Constants.TICK_P_ROT;
+    return Constants.WHEEL_DIAMETER * Math.PI * getLeftEncoderPos() / Constants.MOTOR_WHEEL_GEAR_RATIO;
   }
 
   public final double getRightDistanceInch() {
-    return Constants.WHEEL_DIAMETER * Math.PI * getRightEncoderPos() / Constants.TICK_P_ROT;
+    return Constants.WHEEL_DIAMETER * Math.PI * getRightEncoderPos() / Constants.MOTOR_WHEEL_GEAR_RATIO;
   }
 
   public final double getAverageDistanceInch() {
     return (getLeftDistanceInch() + getRightDistanceInch()) / 2;
+  }
+
+  public final void driveDistance(double inches) {
+    m_leftLeader.getPIDController().setReference(8, ControlType.kPosition);
+    m_rightLeader.getPIDController().setReference(8, ControlType.kPosition);
   }
   
 }
