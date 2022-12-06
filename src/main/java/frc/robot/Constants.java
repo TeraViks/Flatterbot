@@ -20,5 +20,5 @@ public final class Constants {
     public static final double SPEED_FACTOR = 0.5;
 
     public static final int WHEEL_DIAMETER = 6;
-    public static final double TICK_P_ROT = 0;
+    public static final double MOTOR_WHEEL_GEAR_RATIO = 8.0;
 }
