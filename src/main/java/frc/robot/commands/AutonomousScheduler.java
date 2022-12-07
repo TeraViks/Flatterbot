@@ -7,9 +7,8 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Drivetrain;
 
-public class AutonomousDistance extends SequentialCommandGroup {
-  /** Creates a new AutonomousDistance. */
-  public AutonomousDistance(Drivetrain drivetrain) {
+public class AutonomousScheduler extends SequentialCommandGroup {
+  public AutonomousScheduler(Drivetrain drivetrain) {
     addCommands(
       new DriveDistance(60, drivetrain)
       );
