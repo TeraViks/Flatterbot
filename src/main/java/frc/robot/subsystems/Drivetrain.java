@@ -8,14 +8,16 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMax.ControlType;
-import java.lang.Math;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import com.revrobotics.CANSparkMax.IdleMode;
+
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+
+import java.lang.Math;
 
 public class Drivetrain extends SubsystemBase {
   // Creates Motor Objects
@@ -30,14 +32,14 @@ public class Drivetrain extends SubsystemBase {
   RelativeEncoder m_rightFrontEncoder = m_rightLeader.getEncoder();
   RelativeEncoder m_rightBackEncoder = m_rightBackMotor.getEncoder();
 
+  // Creates the MotorControllerGroup objects used in teleop for arcadeDrive()
   private final MotorControllerGroup m_rightDrive = new MotorControllerGroup(m_rightLeader, m_rightBackMotor);
   private final MotorControllerGroup m_leftDrive = new MotorControllerGroup(m_leftLeader, m_leftBackMotor);
   
   
-  
   private final DifferentialDrive diffDrive = new DifferentialDrive(m_leftDrive, m_rightDrive);
 
-  /** Creates a new Drivetrain. */
+  // Creates a new Drivetrain object and sets settings
   public Drivetrain() {
     m_rightLeader.setInverted(true);
     m_rightBackMotor.setInverted(true);
@@ -52,9 +54,9 @@ public class Drivetrain extends SubsystemBase {
     m_rightBackMotor.follow(m_rightLeader, false);
   }
 
+  // This method will be called once per teleop run
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
     diffDrive.arcadeDrive(
       RobotContainer.getJoyX(),
       RobotContainer.getJoyY()*Constants.SPEED_FACTOR
