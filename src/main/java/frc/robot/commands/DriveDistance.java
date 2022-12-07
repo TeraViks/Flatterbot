@@ -13,7 +13,6 @@ public class DriveDistance extends CommandBase {
   private final double m_distance;
 
   public DriveDistance(double distance, Drivetrain drive) {
-    // Use addRequirements() here to declare subsystem dependencies.
     m_distance = distance;
     m_drive = drive;
     addRequirements(drive);
