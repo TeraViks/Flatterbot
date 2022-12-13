@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.RobotContainer;
 
 import com.revrobotics.RelativeEncoder;
@@ -41,6 +42,7 @@ public class Drivetrain extends SubsystemBase {
 
   // Creates a new Drivetrain object and sets settings
   public Drivetrain() {
+    diffDrive.setDeadband(Constants.DEADBAND_SIZE);
     m_rightLeader.setInverted(true);
     m_rightBackMotor.setInverted(true);
 
@@ -57,18 +59,25 @@ public class Drivetrain extends SubsystemBase {
   // This method will be called once per teleop run
   @Override
   public void periodic() {
+    double y = RobotContainer.getJoyY();
+    double x = RobotContainer.getJoyX();
     diffDrive.arcadeDrive(
-      RobotContainer.getJoyX(),
-      RobotContainer.getJoyY()*Constants.SPEED_FACTOR
+      -y * Constants.SPEED_FACTOR,
+      x * Constants.SPEED_FACTOR,
+      true
       );
   }
 
   private final double revToInch(double revolutions){
-    return Constants.WHEEL_DIAMETER * Math.PI * revolutions / Constants.MOTOR_WHEEL_GEAR_RATIO;
+    double ret = revolutions * Constants.WHEEL_DIAMETER * Math.PI / Constants.MOTOR_WHEEL_GEAR_RATIO;
+    return ret;
   }
 
+
   private final double inchToRev(double inches) {
-    return Constants.WHEEL_DIAMETER * Math.PI / inches * Constants.MOTOR_WHEEL_GEAR_RATIO;
+    double ret = inches * Constants.MOTOR_WHEEL_GEAR_RATIO / (Constants.WHEEL_DIAMETER * Math.PI);
+    // System.out.printf("inchToRev: (%f)->(%f)", inches, ret);
+    return ret;
   }
 
   public final void resetEncoders() {
@@ -115,9 +124,18 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public final void driveDistance(double inches) {
-    double distance = inchToRev(inches);
-    m_leftLeader.getPIDController().setReference(distance, ControlType.kPosition);
-    m_rightLeader.getPIDController().setReference(distance, ControlType.kPosition);
+    double revs = inchToRev(inches);
+    m_leftLeader.getPIDController().setOutputRange(-0.5, 0.5);
+    m_rightLeader.getPIDController().setOutputRange(-0.5, 0.5);
+    m_leftLeader.getPIDController().setP(0.5);
+    m_rightLeader.getPIDController().setP(0.5);
+
+    m_leftLeader.getPIDController().setReference(revs, ControlType.kPosition);
+    m_rightLeader.getPIDController().setReference(revs, ControlType.kPosition);
+    System.out.println("finished");
+    System.out.println(inches);
+    System.out.println(revs);
+    System.out.println(revToInch(revs));
   }
   
 }

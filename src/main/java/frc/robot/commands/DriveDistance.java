@@ -33,6 +33,9 @@ public class DriveDistance extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return Math.abs(m_drive.getLeftDistanceInch() - m_distance) <= 0.5 && Math.abs(m_drive.getRightDistanceInch() - m_distance) <= 0.5;
+    boolean ret = Math.abs(m_drive.getLeftDistanceInch() - m_distance) <= 0.5 && Math.abs(m_drive.getRightDistanceInch() - m_distance) <= 0.5;
+    System.out.printf("Left (%f) // Right (%f)\n", m_drive.getLeftDistanceInch(), m_drive.getRightDistanceInch());
+    System.out.printf("isFinished = %B\n", ret);
+    return ret;
   }
 }
